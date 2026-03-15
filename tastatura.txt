@@ -1,14 +1,2 @@
-# tastatura.txt — exemple de date de intrare de la tastatura
-# (nu exista citiri cin >> in program; inputul e direct din terminal non-blocking)
-
-# Taste de miscare:
-w      <- miscare sus
-s      <- miscare jos
-a      <- miscare stanga
-d      <- miscare dreapta
-# Sau sagetile directionale (Up/Down/Left/Right)
-
-# Slice-ul se face AUTOMAT cand te muti pe celula unui inamic.
-
-# Iesire din joc:
-q      <- quit
+5
+11 22 33 44 55
