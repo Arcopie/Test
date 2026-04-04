@@ -1,4 +1,8 @@
-# Nu primesc notă pentru că nu am pus titlu și descriere
+Titlu: Keyslice
+Not your usual keyboard game. In this game you have to type the exact key you want to slice towards.
+Slice who? Your enemies, there's a lot of 'em. The game area consists of blocks numbered QWERTY...BNM.
+In order to stay alive you need to be moving constantly, they kill you only if you're standing still.
+Enemies will approach you along the tiles of the game, some can be killed and some need to be dodged.
 
 ### Folosiți template-ul corespunzător grupei voastre!
 
