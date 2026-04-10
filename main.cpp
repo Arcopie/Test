@@ -565,54 +565,9 @@ public:
 
 int main() {
   // demo
-  cout << "--- Pozitie ---" << endl;
-  Pozitie p1(1, 3), p2(2, 7);
-  cout << "p1=" << p1 << " p2=" << p2 << " egale? " << (p1 == p2 ? "da" : "nu")
-       << endl;
 
-  cout << "--- Celula ---" << endl;
-  Celula c1(Pozitie(0, 0), 'q');
-  cout << "c1=" << c1 << endl;
-
-  cout << "--- Entitate (Big Three) ---" << endl;
-  Entitate e1(1, Pozitie(0, 0), "Alfa");
-  Entitate e2(e1);
-  Entitate e3(2, Pozitie(2, 9), "Beta");
-  e3 = e1;
-  cout << "e1: " << e1 << endl;
-  cout << "e2 (copie): " << e2 << endl;
-  cout << "e3 (dupa e3=e1): " << e3 << endl;
-
-  cout << "--- Inamic ---" << endl;
-  Inamic in1(10, Pozitie(0, 5), 'E');
-  cout << "inainte: " << in1 << endl;
-  in1.muta(3, 10);
-  cout << "dupa mutare: " << in1 << endl;
-
-  cout << "--- Jucator (slice pe traseu) ---" << endl;
-  vector<Inamic> testInamici;
-  testInamici.emplace_back(20, Pozitie(1, 4), 'F');
-  Jucator jTest(Pozitie(1, 1));
-  Pozitie pozV = jTest.getPoz();
-  jTest.teleport(Pozitie(1, 6));
-  int k = jTest.slice(testInamici, pozV);
-  cout << "slice: " << k << " omorati" << endl;
-  cout << jTest << endl;
-
-  cout << "--- Matrice ---" << endl;
-  Matrice mat(3, 10);
-  cout << mat;
-  Pozitie gasit(0, 0);
-  if (mat.gasestePozitie('g', gasit))
-    cout << "'g' e la " << gasit << endl;
-
-  cout << "--- Timer ---" << endl;
-  Timer t(5.0, 6.0);
-  cout << t << endl;
-
-  cout << "--- Joc ---" << endl;
   Joc joc;
-  cout << joc << endl;
+
 
   cout << endl << "Apasa orice tasta pentru a incepe jocul..." << endl;
   citesteTasta();
