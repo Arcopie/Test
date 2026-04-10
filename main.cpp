@@ -1,14 +1,58 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
-
 #include <ctime>
 #include <cstring>
+#include <cstdlib>
 
+#ifdef _WIN32
 #include <conio.h>
 #include <windows.h>
+#else
+#include <termios.h>
+#include <unistd.h>
+#include <sys/select.h>
+#endif
 
 using namespace std;
+
+// functii cross-platform pentru input non-blocking si sleep
+#ifdef _WIN32
+
+static void sleepMs(int ms) { Sleep(ms); }
+static void clearScreen() { system("cls"); }
+static bool tastaDisponibila() { return _kbhit(); }
+static int citesteTasta() {
+    int t = _getch();
+    if (t == 0 || t == 224) t = _getch();
+    return t;
+}
+
+#else
+
+static void sleepMs(int ms) { usleep(ms * 1000); }
+static void clearScreen() { system("clear"); }
+
+static bool tastaDisponibila() {
+    struct timeval tv = {0, 0};
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(0, &fds);
+    return select(1, &fds, NULL, NULL, &tv) > 0;
+}
+
+static int citesteTasta() {
+    struct termios oldt, newt;
+    tcgetattr(0, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(0, TCSANOW, &newt);
+    int ch = getchar();
+    tcsetattr(0, TCSANOW, &oldt);
+    return ch;
+}
+
+#endif
 
 // --- Clasa Pozitie ---
 
@@ -18,8 +62,6 @@ public:
     explicit Pozitie(int lin = 0, int col = 0) : lin(lin), col(col) {}
     [[nodiscard]] int getLin() const { return lin; }
     [[nodiscard]] int getCol() const { return col; }
-    void setLin(int l) { lin = l; }
-    void setCol(int c) { col = c; }
 
     bool operator==(const Pozitie& p) const {
         return lin == p.lin && col == p.col;
@@ -39,7 +81,8 @@ class Celula {
 public:
     Celula(const Pozitie& poz, char simbol) : poz(poz), simbol(simbol) {}
     [[nodiscard]] char getSimbol() const { return simbol; }
-    [[nodiscard]] const Pozitie& getPozitie() const { return poz; }
+    // getPozitie se poate folosi in extinderi viitoare
+    // [[nodiscard]] const Pozitie& getPozitie() const { return poz; }
 
 
     friend ostream& operator<<(ostream& os, const Celula& c) {
@@ -87,10 +130,8 @@ public:
         delete[] nume;
     }
 
-    [[nodiscard]] int getId() const { return id; }
     [[nodiscard]] const Pozitie& getPoz() const { return poz; }
     [[nodiscard]] bool esteInViata() const { return inViata; }
-    [[nodiscard]] const char* getNume() const { return nume; }
     void setPoz(const Pozitie& p) { poz = p; }
     void setInViata(bool v) { inViata = v; }
 
@@ -113,7 +154,7 @@ public:
     // muta inamicul random intr-o directie
     void muta(int nrLinii, int nrColoane) {
         if (!entitate.esteInViata()) return;
-        int directii[][2] = {{-1,0}, {1,0}, {0,-1}, {0,1}};
+        const int directii[][2] = {{-1,0}, {1,0}, {0,-1}, {0,1}};
         int d;
         d = rand() % 4;
         int linNou = entitate.getPoz().getLin() + directii[d][0];
@@ -308,9 +349,9 @@ class Timer {
     }
 public:
     explicit Timer(double spawn = 5.0, double miscare = 3.0)
-        : intervalSpawn(spawn), intervalMiscare(miscare) {
-        ultimSpawn = ultimaMiscare = chrono::steady_clock::now();
-    }
+        : ultimSpawn(chrono::steady_clock::now()),
+          ultimaMiscare(chrono::steady_clock::now()),
+          intervalSpawn(spawn), intervalMiscare(miscare) {}
 
     [[nodiscard]] bool trebuieSpawn() const { return secDe(ultimSpawn) >= intervalSpawn; }
     [[nodiscard]] bool trebuieMiscare() const { return secDe(ultimaMiscare) >= intervalMiscare; }
@@ -348,7 +389,7 @@ public:
     // adauga un inamic nou
     void adaugaInamic() {
         if ((int)inamici.size() >= 8) return; // max 8 inamici pe ecran
-        char simboluri[] = "EFGHIJKL";
+        const char simboluri[] = "EFGHIJKL";
         Pozitie p = matrice.pozitieRandom();
         // sa nu apara fix pe jucator
         int incercari = 0;
@@ -390,7 +431,7 @@ public:
 
     // afiseaza ecranul
     void afiseazaEcran() {
-        system("cls");
+        clearScreen();
         cout << "=== SLICE GAME ===" << endl;
         cout << "Scor: " << jucator.getScor()
              << " | Sliceuri: " << jucator.getSliceuri()
@@ -428,16 +469,15 @@ public:
                     afiseazaEcran();
                     cout << "GAME OVER! Un inamic te-a atins!" << endl;
                     cout << "Scor final: " << jucator.getScor() << endl;
-                    Sleep(2000);
+                    sleepMs(2000);
                     ruleaza = false;
                     break;
                 }
             }
 
             // input non-blocking
-            if (_kbhit()) {
-                int tasta = _getch();
-                if (tasta == 0 || tasta == 224) tasta = _getch();
+            if (tastaDisponibila()) {
+                int tasta = citesteTasta();
                 if (proceseazaTasta(tasta))
                     trebuieRedesnat = true;
             }
@@ -446,7 +486,7 @@ public:
             if (trebuieRedesnat)
                 afiseazaEcran();
 
-            Sleep(100);
+            sleepMs(100);
         }
     }
 
@@ -528,7 +568,7 @@ int main() {
     cout << endl;
 
     cout << "Apasa orice tasta pentru a incepe jocul..." << endl;
-    _getch();
+    citesteTasta();
 
     joc.ruleazaJocul();
 
