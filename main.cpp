@@ -347,14 +347,14 @@ public:
     std::cout << "-+" << std::endl;
   }
 
-  // returneaza simbolul de la o pozitie
-  [[nodiscard]] char simbolLa(const Pozitie &p) const {
-    if (p.getLin() < 0 || p.getLin() >= linii)
-      return '\0';
-    if (p.getCol() < 0 || p.getCol() >= coloane)
-      return '\0';
-    return grila[p.getLin()][p.getCol()].getSimbol();
-  }
+  // // returneaza simbolul de la o pozitie
+  // [[nodiscard]] char simbolLa(const Pozitie &p) const {
+  //   if (p.getLin() < 0 || p.getLin() >= linii)
+  //     return '\0';
+  //   if (p.getCol() < 0 || p.getCol() >= coloane)
+  //     return '\0';
+  //   return grila[p.getLin()][p.getCol()].getSimbol();
+  // }
 
   // genereaza o pozitie random pe matrice
   [[nodiscard]] Pozitie pozitieRandom() const {
