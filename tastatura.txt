@@ -2,13 +2,13 @@
 # (nu exista citiri cin >> in program; inputul e direct din terminal non-blocking)
 
 # Taste de miscare:
-w      <- miscare sus
-s      <- miscare jos
-a      <- miscare stanga
-d      <- miscare dreapta
-# Sau sagetile directionale (Up/Down/Left/Right)
+qwertyuiop
+asdfghjkl;
+zxcvbnm,./
+
+Apesi oricare dintre tastele de mai sus si te muti in pozitia respectiva pe tabla de joc
 
 # Slice-ul se face AUTOMAT cand te muti pe celula unui inamic.
 
 # Iesire din joc:
-q      <- quit
+ESC
