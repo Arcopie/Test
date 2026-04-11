@@ -465,7 +465,7 @@ public:
 
   // proceseaza o tasta - teleportare pe litera apasata
   bool proceseazaTasta(int tasta) {
-    if (tasta == 27) {
+    if (tasta == 27 || tasta == '0') {
       ruleaza = false;
       return false;
     }
