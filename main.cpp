@@ -481,7 +481,7 @@ public:
       // daca m-am teleportat fix pe un inamic -> game over
       if (jucator.atingeInamic(inamici)) {
         gameOver = true;
-        ruleaza = false;
+        ruleaza = true;
         return true;
       }
 
@@ -533,7 +533,7 @@ public:
 
         if (jucator.atingeInamic(inamici)) {
           gameOver = true;
-          ruleaza = false;
+          ruleaza = true;
         }
       }
 
@@ -567,7 +567,6 @@ int main() {
   // demo
 
   Joc joc;
-
 
   cout << endl << "Apasa orice tasta pentru a incepe jocul..." << endl;
   citesteTasta();
