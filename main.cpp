@@ -63,6 +63,14 @@ class Celula {
   char simbol;
 
 public:
+  void set_poz(const Pozitie &poz) {
+    this->poz = poz;
+  }
+
+  void set_simbol(const char simbol) {
+    this->simbol = simbol;
+  }
+
   Celula(const Pozitie &poz, char simbol) : poz(poz), simbol(simbol) {}
   [[nodiscard]] char getSimbol() const { return simbol; }
 
@@ -81,6 +89,22 @@ class Entitate {
   bool inViata;
   char *nume; // alocare dinamica
 public:
+  [[nodiscard]] int id1() const {
+    return id;
+  }
+
+  [[nodiscard]] Pozitie poz1() const {
+    return poz;
+  }
+
+  [[nodiscard]] bool in_viata() const {
+    return inViata;
+  }
+
+  [[nodiscard]] char * nume1() const {
+    return nume;
+  }
+
   Entitate(int id, const Pozitie &poz, const char *nume)
       : id(id), poz(poz), inViata(true) {
     this->nume = new char[strlen(nume) + 1];
@@ -492,8 +516,6 @@ public:
     adaugaInamic();
     afiseazaEcran();
 
-    int turaNr = 0;
-
     while (ruleaza) {
       int tasta = Tasta::citesteTasta();
 
@@ -508,17 +530,17 @@ public:
       if (!ruleaza)
         break;
 
-      turaNr++;
-
-      // adauga un inamic nou la fiecare 5 ture
-      if (turaNr % 5 == 0) {
+      // adauga un inamic nou daca a trecut intervalul de spawn
+      if (timer.trebuieSpawn()) {
         adaugaInamic();
+        timer.resetSpawn();
         trebuieRedesnat = true;
       }
 
-      // muta inamicii la fiecare 2 ture
-      if (turaNr % 2 == 0) {
+      // muta inamicii daca a trecut intervalul de miscare
+      if (timer.trebuieMiscare()) {
         mutaInamici();
+        timer.resetMiscare();
         trebuieRedesnat = true;
         if (jucator.atingeInamic(inamici)) {
           gameOver = true;
