@@ -7,55 +7,34 @@
 #include <cstring>
 #include <ctime>
 
-#ifdef _WIN32
-#include <conio.h>
-#include <windows.h>
-#else
-#include <sys/select.h>
-#include <termios.h>
-#include <unistd.h>
-#endif
+
+//  Clasa Tasta - citire de la tastatura si utilitati terminal
+
+class Tasta {
+public:
 
 
+  // curata ecranul folosind coduri ANSI
+  static void clearScreen() {
+    std::cout << "\033[2J\033[H" << std::flush;
+  }
 
-// functii cross-platform pentru input non-blocking si sleep
-#ifdef _WIN32
+  // citeste un caracter de la tastatura (blocant - asteapta input)
+  // returneaza codul caracterului, sau 0 daca input-ul s-a terminat (EOF)
+  static int citesteTasta() {
+    char ch;
+    if (std::cin >> ch) {
+      return static_cast<int>(ch);
+    }
+    return 0;
+  }
 
-static void sleepMs(int ms) { Sleep(ms); }
-static void clearScreen() { system("cls"); }
-static bool tastaDisponibila() { return _kbhit(); }
-static int citesteTasta() {
-  int t = _getch();
-  if (t == 0 || t == 224)
-    t = _getch();
-  return t;
-}
+  friend std::ostream &operator<<(std::ostream &os, const Tasta &) {
+    os << "Tasta[cin]";
+    return os;
+  }
+};
 
-#else
-
-static void sleepMs(int ms) { usleep(ms * 1000); }
-static void clearScreen() { system("clear"); }
-
-static bool tastaDisponibila() {
-  struct timeval tv = {0, 0};
-  fd_set fds;
-  FD_ZERO(&fds);
-  FD_SET(0, &fds);
-  return select(1, &fds, NULL, NULL, &tv) > 0;
-}
-
-static int citesteTasta() {
-  struct termios oldt, newt;
-  tcgetattr(0, &oldt);
-  newt = oldt;
-  newt.c_lflag &= ~(ICANON | ECHO);
-  tcsetattr(0, TCSANOW, &newt);
-  int ch = getchar();
-  tcsetattr(0, TCSANOW, &oldt);
-  return ch;
-}
-
-#endif
 
 //  Clasa Pozitie 
 
@@ -157,9 +136,8 @@ public:
   void muta(int nrLinii, int nrColoane) {
     if (!entitate.esteInViata())
       return;
-    const int directii[][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-    int d;
-    d = rand() % 4;
+    constexpr int directii[][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    int d = rand() % 4;
     int linNou = entitate.getPoz().getLin() + directii[d][0];
     int colNou = entitate.getPoz().getCol() + directii[d][1];
     // verific limitele
@@ -222,11 +200,11 @@ public:
         c1 = c2;
         c2 = tmp;
       }
-      for (int i = 0; i < (int)inamici.size(); i++) {
-        if (inamici[i].esteViu() && inamici[i].getPoz().getLin() == lin &&
-            inamici[i].getPoz().getCol() >= c1 &&
-            inamici[i].getPoz().getCol() <= c2) {
-          inamici[i].omoara();
+      for (auto & i : inamici) {
+        if (i.esteViu() && i.getPoz().getLin() == lin &&
+            i.getPoz().getCol() >= c1 &&
+            i.getPoz().getCol() <= c2) {
+          i.omoara();
           scor += 10;
           nrSliceuri++;
           omorati++;
@@ -242,11 +220,11 @@ public:
         r1 = r2;
         r2 = tmp;
       }
-      for (int i = 0; i < (int)inamici.size(); i++) {
-        if (inamici[i].esteViu() && inamici[i].getPoz().getCol() == col &&
-            inamici[i].getPoz().getLin() >= r1 &&
-            inamici[i].getPoz().getLin() <= r2) {
-          inamici[i].omoara();
+      for (auto & i : inamici) {
+        if (i.esteViu() && i.getPoz().getCol() == col &&
+            i.getPoz().getLin() >= r1 &&
+            i.getPoz().getLin() <= r2) {
+          i.omoara();
           scor += 10;
           nrSliceuri++;
           omorati++;
@@ -283,10 +261,10 @@ class Matrice {
   std::vector<std::vector<Celula>> grila;
 
   void construiesteGrila() {
-    const char taste[] = "qwertyuiopasdfghjkl;zxcvbnm,./";
     for (int i = 0; i < linii; i++) {
       grila.emplace_back();
       for (int j = 0; j < coloane; j++) {
+        constexpr char taste[] = "qwertyuiopasdfghjkl;zxcvbnm,./";
         int idx = i * coloane + j;
         char ch = (idx < 30) ? taste[idx] : '.';
         grila[i].emplace_back(Pozitie(i, j), ch);
@@ -444,9 +422,9 @@ public:
 
   // adauga un inamic nou
   void adaugaInamic() {
-    if ((int)inamici.size() >= 8)
+    if (static_cast<int>(inamici.size()) >= 8)
       return; // max 8 inamici pe ecran
-    const char simboluri[] = "EFGHIJKL";
+    constexpr char simboluri[] = "EFGHIJKL";
     Pozitie p = matrice.pozitieRandom();
     // sa nu apara fix pe jucator
     int incercari = 0;
@@ -461,7 +439,7 @@ public:
 
   // proceseaza o tasta - teleportare pe litera apasata
   bool proceseazaTasta(int tasta) {
-    if (tasta == 27) {
+    if (tasta == 27 || tasta == '0') {
       ruleaza = false;
       return false;
     }
@@ -494,8 +472,8 @@ public:
   }
 
   // afiseaza ecranul
-  void afiseazaEcran() {
-    clearScreen();
+  void afiseazaEcran() const {
+    Tasta::clearScreen();
     std::cout << "SLICE GAME" << std::endl;
     std::cout << "Scor: " << jucator.getScor()
          << " | Sliceuri: " << jucator.getSliceuri()
@@ -508,41 +486,48 @@ public:
   }
 
   void ruleazaJocul() {
-    srand((unsigned)time(nullptr));
+    srand(static_cast<unsigned>(time(nullptr)));
     ruleaza = true;
     gameOver = false;
     adaugaInamic();
     afiseazaEcran();
 
-    while (ruleaza) {
-      bool trebuieRedesnat = false;
+    int turaNr = 0;
 
-      if (timer.trebuieSpawn()) {
+    while (ruleaza) {
+      int tasta = Tasta::citesteTasta();
+
+      // daca input-ul s-a terminat (EOF), oprim jocul
+      if (tasta == 0) {
+        ruleaza = false;
+        break;
+      }
+
+      bool trebuieRedesnat = proceseazaTasta(tasta);
+
+      if (!ruleaza)
+        break;
+
+      turaNr++;
+
+      // adauga un inamic nou la fiecare 5 ture
+      if (turaNr % 5 == 0) {
         adaugaInamic();
-        timer.resetSpawn();
         trebuieRedesnat = true;
       }
-      if (timer.trebuieMiscare()) {
-        mutaInamici();
-        timer.resetMiscare();
-        trebuieRedesnat = true;
 
+      // muta inamicii la fiecare 2 ture
+      if (turaNr % 2 == 0) {
+        mutaInamici();
+        trebuieRedesnat = true;
         if (jucator.atingeInamic(inamici)) {
           gameOver = true;
           ruleaza = false;
         }
       }
 
-      if (tastaDisponibila()) {
-        int tasta = citesteTasta();
-        if (proceseazaTasta(tasta))
-          trebuieRedesnat = true;
-      }
-
       if (trebuieRedesnat)
         afiseazaEcran();
-
-      sleepMs(100);
     }
 
     afiseazaEcran();
@@ -550,7 +535,8 @@ public:
       std::cout << "GAME OVER! Un inamic te-a atins!" << std::endl;
       std::cout << "Scor final: " << jucator.getScor() << std::endl;
     }
-    sleepMs(2000);
+    std::cout << "Apasa orice tasta pentru a iesi..." << std::endl;
+    Tasta::citesteTasta();
   }
 
   friend std::ostream &operator<<(std::ostream &os, const Joc &j) {
@@ -575,7 +561,7 @@ int main() {
   std::cout <<std::endl<< joc << std::endl;
 
   std::cout << std::endl << "Apasa orice tasta pentru a incepe jocul" << std::endl;
-  citesteTasta();
+  Tasta::citesteTasta();
   joc.ruleazaJocul();
 
   return 0;
