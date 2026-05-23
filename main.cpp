@@ -3,23 +3,19 @@
 #include <vector>
 
 #include <chrono>
-#include <cstdlib>
+
 #include <cstring>
 #include <ctime>
 
-#ifdef _WIN32
+
 #include <conio.h>
 #include <windows.h>
-#else
-#include <sys/select.h>
-#include <termios.h>
-#include <unistd.h>
-#endif
+
+
 
 using namespace std;
 
 // functii cross-platform pentru input non-blocking si sleep
-#ifdef _WIN32
 
 static void sleepMs(int ms) { Sleep(ms); }
 static void clearScreen() { system("cls"); }
@@ -31,31 +27,7 @@ static int citesteTasta() {
   return t;
 }
 
-#else
 
-static void sleepMs(int ms) { usleep(ms * 1000); }
-static void clearScreen() { system("clear"); }
-
-static bool tastaDisponibila() {
-  struct timeval tv = {0, 0};
-  fd_set fds;
-  FD_ZERO(&fds);
-  FD_SET(0, &fds);
-  return select(1, &fds, NULL, NULL, &tv) > 0;
-}
-
-static int citesteTasta() {
-  struct termios oldt, newt;
-  tcgetattr(0, &oldt);
-  newt = oldt;
-  newt.c_lflag &= ~(ICANON | ECHO);
-  tcsetattr(0, TCSANOW, &newt);
-  int ch = getchar();
-  tcsetattr(0, TCSANOW, &oldt);
-  return ch;
-}
-
-#endif
 
 // --- Clasa Pozitie ---
 
