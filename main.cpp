@@ -7,7 +7,6 @@
 #include <cstring>
 #include <ctime>
 
-#include <conio.h>
 #include <windows.h>
 
 static void sleepMs(int ms) { Sleep(ms); }
