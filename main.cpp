@@ -701,8 +701,6 @@ public:
     return false;
   }
 
-  [[nodiscard]] int getRestartari() const { return nrRestartari; }
-
   friend std::ostream &operator<<(std::ostream &os, const MeniuRestart &m) {
     os << "MeniuRestart[restartari: " << m.nrRestartari << "]";
     return os;
@@ -717,12 +715,14 @@ int main() {
   std::cout << "Pentru un inamic aflat in matrice pe lin:2 col:3 il poti "
                "elinima astfel:"
             << std::endl;
-  std::cout << "Slice de pe lin:2 col:1 pe lin:2 col:5 sau vice versa, slice "
-               "de pe lin:1 col:3 pe lin:3 col:3"
+  std::cout << "Slice de pe lin:2 col:1 pe lin:2 col:5 sau vice versa, slicede "
+               "pe lin:1 col:3 pe lin:3 col:3"
             << std::endl;
   std::cout << "! Mare atentie sa nu dai slice pe casuta cu inamicul in ea"
             << std::endl;
-  std::cout << "Playerul este '@' " << std::endl;
+  std::cout << "Inamicii periculosi sunt '!' si nu ii poti elinima, trebuie sa "
+               "te feresti de ei." std::cout
+            << "Playerul este '@' " << std::endl;
 
   Matrice mat(3, 10);
   std::cout << std::endl << mat;
