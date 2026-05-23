@@ -7,36 +7,20 @@
 #include <cstring>
 #include <ctime>
 
+#include <conio.h>
+#include <windows.h>
 
-//  Clasa Tasta - citire de la tastatura si utilitati terminal
+static void sleepMs(int ms) { Sleep(ms); }
+static void clearScreen() { system("cls"); }
+static bool tastaDisponibila() { return _kbhit(); }
+static int citesteTasta() {
+  int t = _getch();
+  if (t == 0 || t == 224)
+    t = _getch();
+  return t;
+}
 
-class Tasta {
-public:
-
-
-  // curata ecranul folosind coduri ANSI
-  static void clearScreen() {
-    std::cout << "\033[2J\033[H" << std::flush;
-  }
-
-  // citeste un caracter de la tastatura (blocant - asteapta input)
-  // returneaza codul caracterului, sau 0 daca input-ul s-a terminat (EOF)
-  static int citesteTasta() {
-    char ch;
-    if (std::cin >> ch) {
-      return static_cast<int>(ch);
-    }
-    return 0;
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const Tasta &) {
-    os << "Tasta[cin]";
-    return os;
-  }
-};
-
-
-//  Clasa Pozitie 
+//  Clasa Pozitie
 
 class Pozitie {
   int lin, col;
@@ -63,17 +47,8 @@ class Celula {
   char simbol;
 
 public:
-  void set_poz(const Pozitie &poz) {
-    this->poz = poz;
-  }
-
-  void set_simbol(const char simbol) {
-    this->simbol = simbol;
-  }
-
   Celula(const Pozitie &poz, char simbol) : poz(poz), simbol(simbol) {}
   [[nodiscard]] char getSimbol() const { return simbol; }
-
 
   friend std::ostream &operator<<(std::ostream &os, const Celula &c) {
     os << c.simbol;
@@ -89,22 +64,6 @@ class Entitate {
   bool inViata;
   char *nume; // alocare dinamica
 public:
-  [[nodiscard]] int id1() const {
-    return id;
-  }
-
-  [[nodiscard]] Pozitie poz1() const {
-    return poz;
-  }
-
-  [[nodiscard]] bool in_viata() const {
-    return inViata;
-  }
-
-  [[nodiscard]] char * nume1() const {
-    return nume;
-  }
-
   Entitate(int id, const Pozitie &poz, const char *nume)
       : id(id), poz(poz), inViata(true) {
     this->nume = new char[strlen(nume) + 1];
@@ -129,7 +88,6 @@ public:
     }
     return *this;
   }
-
 
   ~Entitate() { delete[] nume; }
 
@@ -160,8 +118,9 @@ public:
   void muta(int nrLinii, int nrColoane) {
     if (!entitate.esteInViata())
       return;
-    constexpr int directii[][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-    int d = rand() % 4;
+    const int directii[][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    int d;
+    d = rand() % 4;
     int linNou = entitate.getPoz().getLin() + directii[d][0];
     int colNou = entitate.getPoz().getCol() + directii[d][1];
     // verific limitele
@@ -209,7 +168,8 @@ public:
   // teleporteaza jucatorul
   void teleport(const Pozitie &p) { entitate.setPoz(p); }
 
-  // face slice pe inamicii de pe traseul intre pozitia veche si cea noua doar daca randul sau coloana ramane aceeasi
+  // face slice pe inamicii de pe traseul intre pozitia veche si cea noua doar
+  // daca randul sau coloana ramane aceeasi
   int slice(std::vector<Inamic> &inamici, const Pozitie &pozVeche) {
     Pozitie pozNoua = entitate.getPoz();
     int omorati = 0;
@@ -224,11 +184,11 @@ public:
         c1 = c2;
         c2 = tmp;
       }
-      for (auto & i : inamici) {
-        if (i.esteViu() && i.getPoz().getLin() == lin &&
-            i.getPoz().getCol() >= c1 &&
-            i.getPoz().getCol() <= c2) {
-          i.omoara();
+      for (int i = 0; i < (int)inamici.size(); i++) {
+        if (inamici[i].esteViu() && inamici[i].getPoz().getLin() == lin &&
+            inamici[i].getPoz().getCol() >= c1 &&
+            inamici[i].getPoz().getCol() <= c2) {
+          inamici[i].omoara();
           scor += 10;
           nrSliceuri++;
           omorati++;
@@ -244,11 +204,11 @@ public:
         r1 = r2;
         r2 = tmp;
       }
-      for (auto & i : inamici) {
-        if (i.esteViu() && i.getPoz().getCol() == col &&
-            i.getPoz().getLin() >= r1 &&
-            i.getPoz().getLin() <= r2) {
-          i.omoara();
+      for (int i = 0; i < (int)inamici.size(); i++) {
+        if (inamici[i].esteViu() && inamici[i].getPoz().getCol() == col &&
+            inamici[i].getPoz().getLin() >= r1 &&
+            inamici[i].getPoz().getLin() <= r2) {
+          inamici[i].omoara();
           scor += 10;
           nrSliceuri++;
           omorati++;
@@ -259,7 +219,8 @@ public:
     return omorati;
   }
 
-  // verific daca un inamic e pe aceeasi pozitie cu jucatorul si dupa se termina jocul
+  // verific daca un inamic e pe aceeasi pozitie cu jucatorul si dupa se termina
+  // jocul
   [[nodiscard]] bool atingeInamic(const std::vector<Inamic> &inamici) const {
     for (const auto &i : inamici)
       if (i.esteLA(entitate.getPoz()))
@@ -278,17 +239,17 @@ public:
   }
 };
 
-//  Clasa Matrice (compune vector<vector<Celula>>) 
+//  Clasa Matrice (compune vector<vector<Celula>>)
 
 class Matrice {
   int linii, coloane;
   std::vector<std::vector<Celula>> grila;
 
   void construiesteGrila() {
+    const char taste[] = "qwertyuiopasdfghjkl;zxcvbnm,./";
     for (int i = 0; i < linii; i++) {
       grila.emplace_back();
       for (int j = 0; j < coloane; j++) {
-        constexpr char taste[] = "qwertyuiopasdfghjkl;zxcvbnm,./";
         int idx = i * coloane + j;
         char ch = (idx < 30) ? taste[idx] : '.';
         grila[i].emplace_back(Pozitie(i, j), ch);
@@ -307,7 +268,8 @@ public:
   [[nodiscard]] int getColoane() const { return coloane; }
 
   // afisare margini
-  void afiseaza(const Jucator &jucator, const std::vector<Inamic> &inamici) const {
+  void afiseaza(const Jucator &jucator,
+                const std::vector<Inamic> &inamici) const {
 
     std::cout << "  +";
     for (int j = 0; j < coloane; j++)
@@ -385,7 +347,7 @@ public:
   }
 };
 
-//  Clasa Timer 
+//  Clasa Timer
 
 class Timer {
   std::chrono::steady_clock::time_point ultimSpawn;
@@ -393,8 +355,10 @@ class Timer {
   double intervalSpawn;   // secunde
   double intervalMiscare; // secunde
 
-  [[nodiscard]] static double secDe(const std::chrono::steady_clock::time_point &t) {
-    return std::chrono::duration<double>(std::chrono::steady_clock::now() - t).count();
+  [[nodiscard]] static double
+  secDe(const std::chrono::steady_clock::time_point &t) {
+    return std::chrono::duration<double>(std::chrono::steady_clock::now() - t)
+        .count();
   }
 
 public:
@@ -419,7 +383,7 @@ public:
   }
 };
 
-//  Clasa Joc (compune Matrice, Jucator, vector<Inamic>, Timer) 
+//  Clasa Joc (compune Matrice, Jucator, vector<Inamic>, Timer)
 
 class Joc {
   Matrice matrice;
@@ -446,9 +410,9 @@ public:
 
   // adauga un inamic nou
   void adaugaInamic() {
-    if (static_cast<int>(inamici.size()) >= 8)
+    if ((int)inamici.size() >= 8)
       return; // max 8 inamici pe ecran
-    constexpr char simboluri[] = "EFGHIJKL";
+    const char simboluri[] = "EFGHIJKL";
     Pozitie p = matrice.pozitieRandom();
     // sa nu apara fix pe jucator
     int incercari = 0;
@@ -463,7 +427,7 @@ public:
 
   // proceseaza o tasta - teleportare pe litera apasata
   bool proceseazaTasta(int tasta) {
-    if (tasta == 27 || tasta == '0') {
+    if (tasta == 27) {
       ruleaza = false;
       return false;
     }
@@ -496,13 +460,14 @@ public:
   }
 
   // afiseaza ecranul
-  void afiseazaEcran() const {
-    Tasta::clearScreen();
+  void afiseazaEcran() {
+    clearScreen();
     std::cout << "SLICE GAME" << std::endl;
     std::cout << "Scor: " << jucator.getScor()
-         << " | Sliceuri: " << jucator.getSliceuri()
-         << " | Inamici: " << inamici.size() << std::endl;
-    std::cout << "Apasa o litera de pe matrice = teleportare + slice" << std::endl;
+              << " | Sliceuri: " << jucator.getSliceuri()
+              << " | Inamici: " << inamici.size() << std::endl;
+    std::cout << "Apasa o litera de pe matrice = teleportare + slice"
+              << std::endl;
     std::cout << "ESC = iesire" << std::endl;
     std::cout << std::endl;
     matrice.afiseaza(jucator, inamici);
@@ -510,46 +475,41 @@ public:
   }
 
   void ruleazaJocul() {
-    srand(static_cast<unsigned>(time(nullptr)));
+    srand((unsigned)time(nullptr));
     ruleaza = true;
     gameOver = false;
     adaugaInamic();
     afiseazaEcran();
 
     while (ruleaza) {
-      int tasta = Tasta::citesteTasta();
+      bool trebuieRedesnat = false;
 
-      // daca input-ul s-a terminat (EOF), oprim jocul
-      if (tasta == 0) {
-        ruleaza = false;
-        break;
-      }
-
-      bool trebuieRedesnat = proceseazaTasta(tasta);
-
-      if (!ruleaza)
-        break;
-
-      // adauga un inamic nou daca a trecut intervalul de spawn
       if (timer.trebuieSpawn()) {
         adaugaInamic();
         timer.resetSpawn();
         trebuieRedesnat = true;
       }
-
-      // muta inamicii daca a trecut intervalul de miscare
       if (timer.trebuieMiscare()) {
         mutaInamici();
         timer.resetMiscare();
         trebuieRedesnat = true;
+
         if (jucator.atingeInamic(inamici)) {
           gameOver = true;
           ruleaza = false;
         }
       }
 
+      if (tastaDisponibila()) {
+        int tasta = citesteTasta();
+        if (proceseazaTasta(tasta))
+          trebuieRedesnat = true;
+      }
+
       if (trebuieRedesnat)
         afiseazaEcran();
+
+      sleepMs(100);
     }
 
     afiseazaEcran();
@@ -557,8 +517,7 @@ public:
       std::cout << "GAME OVER! Un inamic te-a atins!" << std::endl;
       std::cout << "Scor final: " << jucator.getScor() << std::endl;
     }
-    std::cout << "Apasa orice tasta pentru a iesi..." << std::endl;
-    Tasta::citesteTasta();
+    sleepMs(2000);
   }
 
   friend std::ostream &operator<<(std::ostream &os, const Joc &j) {
@@ -569,22 +528,28 @@ public:
 
 int main() {
   // demo
-  std::cout<< "Inamicii se vor spauna si trebuie sa ii elimini efectuand un slice(apasand orice tasta de pe matrice)"<<std::endl;
-  std::cout<<"Pentru un inamic aflat in matrice pe lin:2 col:3 il poti elinima astfel:"<<std::endl;
-  std::cout<<"Slice de pe lin:2 col:1 pe lin:2 col:5 sau vice versa, slice de pe lin:1 col:3 pe lin:3 col:3"<<std::endl;
-  std::cout<<"! Mare atentie sa nu dai slice pe casuta cu inamicul in ea"<<std::endl;
-  std::cout<<"Playerul este '@' "<<std::endl;
-
-
+  std::cout << "Inamicii se vor spauna si trebuie sa ii elimini efectuand un "
+               "slice(apasand orice tasta de pe matrice)"
+            << std::endl;
+  std::cout << "Pentru un inamic aflat in matrice pe lin:2 col:3 il poti "
+               "elinima astfel:"
+            << std::endl;
+  std::cout << "Slice de pe lin:2 col:1 pe lin:2 col:5 sau vice versa, slice "
+               "de pe lin:1 col:3 pe lin:3 col:3"
+            << std::endl;
+  std::cout << "! Mare atentie sa nu dai slice pe casuta cu inamicul in ea"
+            << std::endl;
+  std::cout << "Playerul este '@' " << std::endl;
 
   Matrice mat(3, 10);
-  std::cout <<std::endl<< mat;
+  std::cout << std::endl << mat;
   Joc joc;
-  std::cout <<std::endl<< joc << std::endl;
+  std::cout << std::endl << joc << std::endl;
 
-  std::cout << std::endl << "Apasa orice tasta pentru a incepe jocul" << std::endl;
-  Tasta::citesteTasta();
+  std::cout << std::endl
+            << "Apasa orice tasta pentru a incepe jocul" << std::endl;
+  citesteTasta();
   joc.ruleazaJocul();
-
+  /// test
   return 0;
 }
