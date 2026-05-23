@@ -188,7 +188,7 @@ public:
     return entitate.esteInViata() && !aExpirat();
   }
   [[nodiscard]] const Pozitie &getPoz() const { return entitate.getPoz(); }
-  [[nodiscard]] char getSimbol() const { return '!'; }
+  [[nodiscard]] static char getSimbol() { return '!'; }
 
   friend std::ostream &operator<<(std::ostream &os, const InamicPericulos &e) {
     os << "[!] " << e.entitate;
@@ -665,7 +665,7 @@ class MeniuRestart {
   int nrRestartari;
 
   // afiseaza optiunile dupa game over
-  void afiseazaOptiuni() const {
+  static void afiseazaOptiuni() {
     std::cout << std::endl;
     std::cout << "Apasa [R] pentru a reincepe jocul" << std::endl;
     std::cout << "Apasa [ESC] pentru a iesi" << std::endl;
