@@ -19,7 +19,7 @@ static int citesteTasta() {
     t = _getch();
   return t;
 }
-
+//
 //  Clasa Pozitie
 
 class Pozitie {
