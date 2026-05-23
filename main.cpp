@@ -156,6 +156,48 @@ public:
   }
 };
 
+//  Clasa InamicPericulos (inamic temporar care nu poate fi omorat, simbol '!')
+
+class InamicPericulos {
+  Entitate entitate;
+  std::chrono::steady_clock::time_point momentSpawn;
+  double durataViata; // secunde cat ramane pe ecran
+
+public:
+  InamicPericulos(int id, const Pozitie &poz, double durata = 2.0)
+      : entitate(id, poz, "InamicPericulos"),
+        momentSpawn(std::chrono::steady_clock::now()), durataViata(durata) {}
+
+  // verifica daca a expirat timpul de viata
+  [[nodiscard]] bool aExpirat() const {
+    double secTrecute = std::chrono::duration<double>(
+                            std::chrono::steady_clock::now() - momentSpawn)
+                            .count();
+    return secTrecute >= durataViata;
+  }
+
+  // verifica daca inamicul e activ si la pozitia data
+  [[nodiscard]] bool esteLA(const Pozitie &p) const {
+    return entitate.esteInViata() && !aExpirat() && entitate.getPoz() == p;
+  }
+
+  // dezactiveaza inamicul (cand expira)
+  void dezactiveaza() { entitate.setInViata(false); }
+
+  [[nodiscard]] bool esteActiv() const {
+    return entitate.esteInViata() && !aExpirat();
+  }
+  [[nodiscard]] const Pozitie &getPoz() const { return entitate.getPoz(); }
+  [[nodiscard]] char getSimbol() const { return '!'; }
+
+  friend std::ostream &operator<<(std::ostream &os, const InamicPericulos &e) {
+    os << "[!] " << e.entitate;
+    if (e.aExpirat())
+      os << " [expirat]";
+    return os;
+  }
+};
+
 //  Clasa Jucator
 
 class Jucator {
@@ -230,6 +272,15 @@ public:
     return false;
   }
 
+  // verific daca un inamic periculos activ e pe aceeasi pozitie cu jucatorul
+  [[nodiscard]] bool
+  atingeInamicPericulos(const std::vector<InamicPericulos> &periculosi) const {
+    for (const auto &ip : periculosi)
+      if (ip.esteLA(entitate.getPoz()))
+        return true;
+    return false;
+  }
+
   [[nodiscard]] int getScor() const { return scor; }
   [[nodiscard]] int getSliceuri() const { return nrSliceuri; }
   [[nodiscard]] const Pozitie &getPoz() const { return entitate.getPoz(); }
@@ -270,8 +321,8 @@ public:
   [[nodiscard]] int getColoane() const { return coloane; }
 
   // afisare margini
-  void afiseaza(const Jucator &jucator,
-                const std::vector<Inamic> &inamici) const {
+  void afiseaza(const Jucator &jucator, const std::vector<Inamic> &inamici,
+                const std::vector<InamicPericulos> &periculosi) const {
 
     std::cout << "  +";
     for (int j = 0; j < coloane; j++)
@@ -289,8 +340,19 @@ public:
           continue;
         }
 
-        // verificam daca e un inamic viu
+        // verificam daca e un inamic periculos activ
         bool gasit = false;
+        for (const auto &ip : periculosi) {
+          if (ip.esteActiv() && ip.esteLA(p)) {
+            std::cout << ip.getSimbol() << " ";
+            gasit = true;
+            break;
+          }
+        }
+        if (gasit)
+          continue;
+
+        // verificam daca e un inamic viu
         for (const auto &k : inamici) {
           if (k.esteViu() && k.esteLA(p)) {
             std::cout << k.getSimbol() << " ";
@@ -385,16 +447,21 @@ public:
   }
 };
 
-//  Clasa Joc (compune Matrice, Jucator, vector<Inamic>, Timer)
+//  Clasa Joc (compune Matrice, Jucator, vector<Inamic>,
+//  vector<InamicPericulos>, Timer)
 
 class Joc {
   Matrice matrice;
   Jucator jucator;
   std::vector<Inamic> inamici;
+  std::vector<InamicPericulos> periculosi;
   Timer timer;
+  std::chrono::steady_clock::time_point ultimSpawnPericulos;
   bool ruleaza;
   bool gameOver;
   int nextId;
+  int totalOmorati; // contor pentru inamici normali omorati (trigger spawn
+                    // periculos)
 
   void curataMortii() {
     // stergem inamicii morti din vector
@@ -405,10 +472,35 @@ class Joc {
     inamici = vii;
   }
 
+  // sterge inamicii periculosi care au expirat
+  void curataPericulosiExpirat() {
+    std::vector<InamicPericulos> activi;
+    for (auto &ip : periculosi) {
+      if (ip.esteActiv())
+        activi.push_back(ip);
+      else
+        ip.dezactiveaza();
+    }
+    periculosi = activi;
+  }
+
+  // spawneaza un inamic periculos la o pozitie random
+  void adaugaInamicPericulos() {
+    Pozitie p = matrice.pozitieRandom();
+    int incercari = 0;
+    while (p == jucator.getPoz() && incercari < 20) {
+      p = matrice.pozitieRandom();
+      incercari++;
+    }
+    periculosi.emplace_back(nextId, p, 2.0);
+    nextId++;
+  }
+
 public:
   Joc()
-      : matrice(3, 10), jucator(Pozitie(1, 5)), timer(5.0, 6.0), ruleaza(false),
-        gameOver(false), nextId(1) {}
+      : matrice(3, 10), jucator(Pozitie(1, 5)), timer(5.0, 6.0),
+        ultimSpawnPericulos(std::chrono::steady_clock::now()), ruleaza(false),
+        gameOver(false), nextId(1), totalOmorati(0) {}
 
   // adauga un inamic nou
   void adaugaInamic() {
@@ -443,14 +535,23 @@ public:
       jucator.teleport(dest);
 
       // daca m-am teleportat fix pe un inamic -> game over
-      if (jucator.atingeInamic(inamici)) {
+      if (jucator.atingeInamic(inamici) ||
+          jucator.atingeInamicPericulos(periculosi)) {
         gameOver = true;
         ruleaza = false;
         return true;
       }
 
-      if (jucator.slice(inamici, pozVeche) > 0)
+      int omorati = jucator.slice(inamici, pozVeche);
+      if (omorati > 0) {
+        totalOmorati += omorati;
         curataMortii();
+        // la fiecare 2 inamici normali omorati, spawneaza un inamic periculos
+        while (totalOmorati >= 2) {
+          adaugaInamicPericulos();
+          totalOmorati -= 2;
+        }
+      }
       return true;
     }
     return false;
@@ -467,12 +568,14 @@ public:
     std::cout << "SLICE GAME" << std::endl;
     std::cout << "Scor: " << jucator.getScor()
               << " | Sliceuri: " << jucator.getSliceuri()
-              << " | Inamici: " << inamici.size() << std::endl;
+              << " | Inamici: " << inamici.size()
+              << " | Periculosi(!): " << periculosi.size() << std::endl;
     std::cout << "Apasa o litera de pe matrice = teleportare + slice"
               << std::endl;
-    std::cout << "ESC = iesire" << std::endl;
+    std::cout << "ESC = iesire | ! = inamic periculos (nu atinge!)"
+              << std::endl;
     std::cout << std::endl;
-    matrice.afiseaza(jucator, inamici);
+    matrice.afiseaza(jucator, inamici, periculosi);
     std::cout << std::endl;
   }
 
@@ -480,6 +583,7 @@ public:
     srand((unsigned)time(nullptr));
     ruleaza = true;
     gameOver = false;
+    ultimSpawnPericulos = std::chrono::steady_clock::now();
     adaugaInamic();
     afiseazaEcran();
 
@@ -491,15 +595,40 @@ public:
         timer.resetSpawn();
         trebuieRedesnat = true;
       }
+
+      // spawn automat inamic periculos la fiecare 2 secunde
+      double secDePericulos =
+          std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                        ultimSpawnPericulos)
+              .count();
+      if (secDePericulos >= 2.0) {
+        adaugaInamicPericulos();
+        ultimSpawnPericulos = std::chrono::steady_clock::now();
+        trebuieRedesnat = true;
+      }
+
+      // curatam inamicii periculosi expirat (dupa 2 secunde dispar)
+      int periculosiInainte = (int)periculosi.size();
+      curataPericulosiExpirat();
+      if ((int)periculosi.size() != periculosiInainte)
+        trebuieRedesnat = true;
+
       if (timer.trebuieMiscare()) {
         mutaInamici();
         timer.resetMiscare();
         trebuieRedesnat = true;
 
-        if (jucator.atingeInamic(inamici)) {
+        if (jucator.atingeInamic(inamici) ||
+            jucator.atingeInamicPericulos(periculosi)) {
           gameOver = true;
           ruleaza = false;
         }
+      }
+
+      // verificam coliziunea cu inamicii periculosi si dupa miscarea lor
+      if (jucator.atingeInamicPericulos(periculosi)) {
+        gameOver = true;
+        ruleaza = false;
       }
 
       if (tastaDisponibila()) {
@@ -522,8 +651,60 @@ public:
     sleepMs(2000);
   }
 
+  [[nodiscard]] bool esteGameOver() const { return gameOver; }
+
   friend std::ostream &operator<<(std::ostream &os, const Joc &j) {
     os << "Joc: " << j.jucator << " | " << j.timer;
+    return os;
+  }
+};
+
+//  Clasa MeniuRestart (gestioneaza restartul jocului dupa game over)
+
+class MeniuRestart {
+  int nrRestartari;
+
+  // afiseaza optiunile dupa game over
+  void afiseazaOptiuni() const {
+    std::cout << std::endl;
+    std::cout << "Apasa [R] pentru a reincepe jocul" << std::endl;
+    std::cout << "Apasa [ESC] pentru a iesi" << std::endl;
+  }
+
+  // asteapta input de la jucator: R = restart, ESC/EOF = iesire
+  bool asteaptaDecizie() {
+    while (true) {
+      if (tastaDisponibila()) {
+        int tasta = citesteTasta();
+        if (tasta == 'r' || tasta == 'R') {
+          nrRestartari++;
+          return true;
+        }
+        if (tasta == 27 || tasta == EOF)
+          return false;
+      }
+      sleepMs(100);
+    }
+  }
+
+public:
+  MeniuRestart() : nrRestartari(0) {}
+
+  // ruleaza un joc si dupa game over ofera optiunea de restart
+  // returneaza true daca jucatorul alege sa joace din nou
+  bool gestioneazaJoc(Joc &joc) {
+    joc.ruleazaJocul();
+    if (joc.esteGameOver()) {
+      afiseazaOptiuni();
+      return asteaptaDecizie();
+    }
+    return false;
+  }
+
+  [[nodiscard]] int getRestartari() const { return nrRestartari; }
+
+  friend std::ostream &operator<<(std::ostream &os, const MeniuRestart &m) {
+    os << "MeniuRestart[restartari: " << m.nrRestartari << "]";
     return os;
   }
 };
@@ -551,7 +732,14 @@ int main() {
   std::cout << std::endl
             << "Apasa orice tasta pentru a incepe jocul" << std::endl;
   citesteTasta();
-  joc.ruleazaJocul();
-  /// test
+
+  MeniuRestart meniu;
+  bool joaca = true;
+  while (joaca) {
+    Joc jocNou;
+    joaca = meniu.gestioneazaJoc(jocNou);
+  }
+
+  std::cout << meniu << std::endl;
   return 0;
 }
