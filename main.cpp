@@ -11,8 +11,16 @@
 
 static void sleepMs(int ms) { rlutil::msleep(ms); }
 static void clearScreen() { rlutil::cls(); }
-static bool tastaDisponibila() { return kbhit(); }
-static int citesteTasta() { return getch(); }
+static bool tastaDisponibila() {
+  if (runs_on_ci())
+    return true;
+  return kbhit();
+}
+static int citesteTasta() {
+  if (runs_on_ci())
+    return getchar();
+  return getch();
+}
 
 //  Clasa Pozitie
 
@@ -421,7 +429,7 @@ public:
 
   // proceseaza o tasta - teleportare pe litera apasata
   bool proceseazaTasta(int tasta) {
-    if (tasta == 27) {
+    if (tasta == 27 || tasta == EOF) {
       ruleaza = false;
       return false;
     }
