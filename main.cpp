@@ -7,8 +7,6 @@
 #include <cstring>
 #include <ctime>
 
-#include <windows.h>
-
 static void sleepMs(int ms) { Sleep(ms); }
 static void clearScreen() { system("cls"); }
 static bool tastaDisponibila() { return _kbhit(); }
