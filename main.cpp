@@ -721,8 +721,9 @@ int main() {
   std::cout << "! Mare atentie sa nu dai slice pe casuta cu inamicul in ea"
             << std::endl;
   std::cout << "Inamicii periculosi sunt '!' si nu ii poti elinima, trebuie sa "
-               "te feresti de ei." std::cout
-            << "Playerul este '@' " << std::endl;
+               "te feresti de ei."
+            << std::endl;
+  std::cout << "Playerul este '@' " << std::endl;
 
   Matrice mat(3, 10);
   std::cout << std::endl << mat;
