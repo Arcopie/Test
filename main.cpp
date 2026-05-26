@@ -6,23 +6,6 @@
 #include "include/Utils.h"
 #include <iostream>
 
-// implementari (single-file compilation)
-#include "src/Celula.cpp"
-#include "src/Entitate.cpp"
-#include "src/EntitateJoc.cpp"
-#include "src/Exceptii.cpp"
-#include "src/InamicNormal.cpp"
-#include "src/InamicPericulos.cpp"
-#include "src/InamicRapid.cpp"
-#include "src/Joc.cpp"
-#include "src/Jucator.cpp"
-#include "src/Matrice.cpp"
-#include "src/MeniuRestart.cpp"
-#include "src/MiniBoss.cpp"
-#include "src/Pozitie.cpp"
-#include "src/Timer.cpp"
-#include "src/Utils.cpp"
-
 int main() {
   try {
     std::cout << "Inamicii se spawneaza - elimina-i efectuand un slice "
