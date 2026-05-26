@@ -51,11 +51,23 @@ include(cmake/CopyHelper.cmake)
 # NOTE: update executable name in .github/workflows/cmake.yml:25 when changing name here
 add_executable(${MAIN_EXECUTABLE_NAME}
     main.cpp
-        include/Example.h
 )
 target_sources(${MAIN_EXECUTABLE_NAME}
     PRIVATE
-        src/Example.cpp
+        src/Utils.cpp
+        src/Exceptii.cpp
+        src/Pozitie.cpp
+        src/Celula.cpp
+        src/Entitate.cpp
+        src/EntitateJoc.cpp
+        src/InamicNormal.cpp
+        src/InamicPericulos.cpp
+        src/MiniBoss.cpp
+        src/Jucator.cpp
+        src/Matrice.cpp
+        src/Timer.cpp
+        src/Joc.cpp
+        src/MeniuRestart.cpp
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )
