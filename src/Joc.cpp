@@ -2,6 +2,7 @@
 #include "InamicNormal.h"
 #include "InamicPericulos.h"
 #include "MiniBoss.h"
+#include "InamicRapid.h"
 #include "Utils.h"
 #include <iostream>
 #include <algorithm>
@@ -48,6 +49,15 @@ void Joc::adaugaMiniBoss() {
     urmatorPragMiniBoss += 100;
 }
 
+void Joc::adaugaInamicRapid() {
+    // inamicul rapid apare dupa scor 50 si se misca diagonal
+    if (jucator.getScor() < 50) return;
+    const char simboluri[] = "RSTUVWXY";
+    char sim = simboluri[(nextId - 1) % 8];
+    entitati.push_back(
+        std::make_shared<InamicRapid>(nextId++, spawneazaPozitie(), sim));
+}
+
 void Joc::adaugaInamic() {
     // dynamic_cast pentru a numara doar inamicii normali
     int nrNormali = 0;
@@ -58,8 +68,13 @@ void Joc::adaugaInamic() {
 
     const char simboluri[] = "EFGHIJKL";
     char sim = simboluri[(nextId - 1) % 8];
-    entitati.push_back(
-        std::make_shared<InamicNormal>(nextId++, spawneazaPozitie(), sim));
+    // la fiecare al 3-lea inamic normal, spawnez unul rapid in loc
+    if (nextId % 3 == 0 && jucator.getScor() >= 50)
+        entitati.push_back(
+            std::make_shared<InamicRapid>(nextId++, spawneazaPozitie(), sim));
+    else
+        entitati.push_back(
+            std::make_shared<InamicNormal>(nextId++, spawneazaPozitie(), sim));
 }
 
 bool Joc::proceseazaTasta(int tasta) {

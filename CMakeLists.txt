@@ -68,6 +68,7 @@ target_sources(${MAIN_EXECUTABLE_NAME}
         src/Timer.cpp
         src/Joc.cpp
         src/MeniuRestart.cpp
+        src/InamicRapid.cpp
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )

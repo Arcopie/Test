@@ -24,6 +24,7 @@ class Joc {
     void curataMortii();
     void adaugaInamicPericulos();
     void adaugaMiniBoss();
+    void adaugaInamicRapid();
     Pozitie spawneazaPozitie(); // gaseste pozitie random departe de jucator
 public:
     Joc();
