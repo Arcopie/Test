@@ -1,5 +1,5 @@
-#include "Entitate.h"
-#include "Exceptii.h"
+#include "../include/Entitate.h"
+#include "../include/Exceptii.h"
 #include <cstring>
 #include <utility>
 

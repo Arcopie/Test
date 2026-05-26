@@ -1,4 +1,4 @@
-#include "InamicNormal.h"
+#include "../include/InamicNormal.h"
 #include <cstdlib>
 #include <utility>
 

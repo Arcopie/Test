@@ -1,4 +1,4 @@
-#include "Exceptii.h"
+#include "../include/Exceptii.h"
 
 ExceptieJoc::ExceptieJoc(const std::string& mesaj) : mesaj(mesaj) {}
 

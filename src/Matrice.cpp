@@ -1,6 +1,6 @@
-#include "Matrice.h"
-#include "Jucator.h"
-#include "EntitateJoc.h"
+#include "../include/Matrice.h"
+#include "../include/Jucator.h"
+#include "../include/EntitateJoc.h"
 #include <iostream>
 #include <cstdlib>
 #include <cstring>

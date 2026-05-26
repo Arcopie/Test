@@ -1,4 +1,4 @@
-#include "Pozitie.h"
+#include "../include/Pozitie.h"
 
 Pozitie::Pozitie(int lin, int col) : lin(lin), col(col) {}
 

@@ -1,4 +1,4 @@
-#include "Timer.h"
+#include "../include/Timer.h"
 
 Timer::Timer(double spawn, double miscare)
     : ultimSpawn(std::chrono::steady_clock::now()),

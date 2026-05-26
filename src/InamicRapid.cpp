@@ -1,4 +1,4 @@
-#include "InamicRapid.h"
+#include "../include/InamicRapid.h"
 #include <cstdlib>
 #include <utility>
 

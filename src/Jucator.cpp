@@ -1,5 +1,5 @@
-#include "Jucator.h"
-#include "EntitateJoc.h"
+#include "../include/Jucator.h"
+#include "../include/EntitateJoc.h"
 #include <algorithm>
 
 Jucator::Jucator(const Pozitie& start)

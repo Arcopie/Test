@@ -1,5 +1,5 @@
-#include "Utils.h"
-#include "rlutil.h"
+#include "../include/Utils.h"
+#include "../ext/rlutil.h"
 
 void sleepMs(int ms) { rlutil::msleep(ms); }
 void clearScreen() { rlutil::cls(); }

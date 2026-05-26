@@ -1,4 +1,4 @@
-#include "MiniBoss.h"
+#include "../include/MiniBoss.h"
 #include <cstdlib>
 #include <utility>
 

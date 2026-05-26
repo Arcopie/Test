@@ -1,4 +1,4 @@
-#include "EntitateJoc.h"
+#include "../include/EntitateJoc.h"
 #include <utility>
 
 int EntitateJoc::contor = 0;

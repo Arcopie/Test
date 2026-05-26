@@ -1,5 +1,5 @@
-#include "MeniuRestart.h"
-#include "Utils.h"
+#include "../include/MeniuRestart.h"
+#include "../include/Utils.h"
 #include <iostream>
 
 MeniuRestart::MeniuRestart() : nrRestartari(0) {}

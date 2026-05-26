@@ -1,9 +1,9 @@
-#include "Joc.h"
-#include "InamicNormal.h"
-#include "InamicPericulos.h"
-#include "MiniBoss.h"
-#include "InamicRapid.h"
-#include "Utils.h"
+#include "../include/Joc.h"
+#include "../include/InamicNormal.h"
+#include "../include/InamicPericulos.h"
+#include "../include/MiniBoss.h"
+#include "../include/InamicRapid.h"
+#include "../include/Utils.h"
 #include <iostream>
 #include <algorithm>
 #include <cstdlib>

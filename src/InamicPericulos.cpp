@@ -1,4 +1,4 @@
-#include "InamicPericulos.h"
+#include "../include/InamicPericulos.h"
 #include <utility>
 
 InamicPericulos::InamicPericulos(int id, const Pozitie& poz, double durata)

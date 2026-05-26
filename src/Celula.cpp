@@ -1,4 +1,4 @@
-#include "Celula.h"
+#include "../include/Celula.h"
 
 Celula::Celula(const Pozitie& poz, char simbol) : poz(poz), simbol(simbol) {}
 
